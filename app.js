@@ -7,18 +7,22 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-function checkArtist(req, res){
-    let found = false;
-    artistArray.forEach((item) => {
-      if (item.id === Number(req.params.artistID)) {
-        found = true;
-      }
-    });
-    if (found) {
-      res.status(200).send(`found`);
-    } else {
-      res.status(404).send(`Sorry the artist you are looking for does not exist`);
-    }
+/********************
+ * HELPER FUNCTIONS *
+ ********************/
+
+const getValue = (array, index) => {
+  let result = array.map(item =>
+    item[index]
+  );
+  return result;
+}
+
+const getEach = (item, indexArtist) => {
+  if(item.id === artistID) {
+    artistIndex = indexArtist;
+    found = true;
+  }
 }
 
 let artistArray = [
@@ -57,9 +61,7 @@ let artistArray = [
 ];
 
 app.get("/", function (req, res) {
-  res.status(200).json(
-    "Welcome to the Artists Data Base"
-  )
+  res.status(200).send("Welcome to the Artists Data Base")
 });
 
 app.get("/artists", function (req, res) {
@@ -68,79 +70,145 @@ app.get("/artists", function (req, res) {
   })
 });
 
-app.get("/artists/name-list", function (req, res) {
-  let newArr;
-  const findArtist = function(artistArray, name){
-    return artistReturned = artistArray.find((artist, index) => {
-      console.log(artist.name)
-      return artist.name
-        
-      })
-    }
+app.get("/artists-name-list", function (req, res) {
+  const result = getValue(artistArray, "name");
+  console.log(result)
+  return res.status(200).json(result);
+})
+  
+  app.get("/artist-by-id/:artistID/", function (req, res) {
+    let artistID = Number(req.params.artistID)
+    let artistIndex;
+    let found = false;
     
-    artistArray.forEach((element) => {
-      newArr.push(findArtist(artistArray, element))
-    })
-    res.status(200).json({
-      newArr,
-    });
-  })
-  
-app.get("/artists/:artistID", function (req, res) {
-  let artistid = Number(req.params.artistID)
-  let found = false;
-    artistArray.forEach((item) => {
-      if (item.id === artistid) {
-        found = true;
+      artistArray.forEach((item, indexArtist) => {
+        if (item.id === artistID) {
+          artistIndex = indexArtist;
+          found = true;
+        }
+      });
+      if (found) {
+          return res.status(200).json(artistArray[artistIndex]);
+      } else {
+        res.status(404).send(`Sorry the artist you are looking for does not exist`);
       }
-    });
-    if (found) {
-      // for(let i = 0; i < artistArray.length; i++){
-      //   console.log(artistArray[i])
-        return res.status(200).json(artistArray.id);
-      // }
-    } else {
-      res.status(404).send(`Sorry the artist you are looking for does not exist`);
-    }
-//   let targetName;
-//   let reqParams = Number(req.params.id)
+  });
   
-//   artistArray.forEach(element => {
-//     if(element.id === reqParams) {
-//       targetName = element.name;
-//     } 
-//   })
-
-//   res.status(200).json({
-//     name: targetName,
-//   })
-});
-
-app.post('/add', function (req, res) {
-  console.log(req.body.albumsArray[0])
+  app.get("/artist-album-by-id/:artistID", function (req, res) {
+    let artistID = Number(req.params.artistID)
+    let artistIndex;
+    let found = false;
+    
+      artistArray.forEach((item, indexArtist) => {
+        if (item.id === artistID) {
+          artistIndex = indexArtist;
+          found = true;
+        }
+      });
+      if (found) {
+          return res.status(200).json(artistArray[artistIndex].albumsArray);
+      } else {
+        res.status(404).send(`Sorry the artist's album you are looking for does not exist`);
+      }
+  });
+  app.get("/artist-top-songs-by-id/:artistID", function (req, res) {
+    let artistID = Number(req.params.artistID)
+    let artistIndex;
+    let found = false;
+    
+      artistArray.forEach((item, indexArtist) => {
+        if (item.id === artistID) {
+          artistIndex = indexArtist;
+          found = true;
+        }
+      });
+      if (found) {
+          return res.status(200).json(artistArray[artistIndex].topSongs);
+      } else {
+        res.status(404).send(`Sorry the artist's TopSongs you are looking for does not exist`);
+      }
+  });
+  
+app.post('/add-artist', function (req, res) {
   artistArray.push({
     id: req.body.id,
     name: req.body.name,
-    albumsArray: [
-      {
-        id: req.body.albumsArray[0].id,
-        name: req.body.albumsArray[0].name,
-      }
-    ],
-    topSongs: [
-      {
-        id: req.body.topSongs[0].id,
-        name: req.body.topSongs[0].name,
-      }
-    ]
   });
 
   res.status(200).json({
     artistArray,
   })
 })
+app.post('/add-album-by-id/:artistID', function (req, res) {
+  let artistID = Number(req.params.artistID)
+  let artistIndex;
+  let found = false;
+  
+    artistArray.forEach((item, indexArtist) => {
+      if (item.id === artistID) {
+        artistIndex = indexArtist;
+        // artistArray[artistIndex].push({
+        //       albumsArray: [
+        //         {
+        //           id: req.body.albumsArray[0].id,
+        //           name: req.body.albumsArray[0].name,
+        //         }
+        //       ]
+        // });
+        found = true
+        console.log(found)
+    };
+    if (found) {
+      return res.status(200).json({artistArray})
+    } else {
+      // res.status(200).json({artistArray})
+      return res.status(404).send(`Sorry the artist's album you are trying to make doesn't work`);
+    }
+  });
+});
 
+//   artistArray.push({
+//     id: req.body.id,
+//     name: req.body.name,
+//     // albumsArray: [
+//     //   {
+//     //     id: req.body.albumsArray[0].id,
+//     //     name: req.body.albumsArray[0].name,
+//     //   }
+//     // ],
+//     // topSongs: [
+//     //   {
+//     //     id: req.body.topSongs[0].id,
+//     //     name: req.body.topSongs[0].name,
+//     //   }
+//     // ]
+//   });
 
+//   res.status(200).json({
+//     artistArray,
+//   })
+// })
+
+app.delete('/delete-artist/:artistID', function(req, res) {
+  let artistIDNumber = Number(req.params.artistID);
+  let obj = {};
+  let artistIndex;
+  
+  console.log('line 148: ', artistArray[0].name)
+  artistArray.forEach((artist, indexArtist) => {
+    console.log(artist.id)
+    if(artist.id === artistIDNumber) {
+      artistIndex = indexArtist;
+
+    } else {
+      console.log("it doesn't work")
+    }
+  })
+
+  res.status(200).json({
+    artistArray,
+  })
+})
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT: ${PORT}`);

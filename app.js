@@ -130,9 +130,12 @@ app.get("/artists-name-list", function (req, res) {
   });
   
 app.post('/add-artist', function (req, res) {
+  let newID = artistArray.length + 1;
   artistArray.push({
-    id: req.body.id,
+    id: newID,
     name: req.body.name,
+    albumsArray: req.body.albumsArray,
+    topSongs: req.body.topSongs,
   });
 
   res.status(200).json({
@@ -147,61 +150,65 @@ app.post('/add-album-by-id/:artistID', function (req, res) {
     artistArray.forEach((item, indexArtist) => {
       if (item.id === artistID) {
         artistIndex = indexArtist;
-        // artistArray[artistIndex].push({
-        //       albumsArray: [
-        //         {
-        //           id: req.body.albumsArray[0].id,
-        //           name: req.body.albumsArray[0].name,
-        //         }
-        //       ]
-        // });
         found = true
-        console.log(found)
     };
     if (found) {
+      artistArray[artistIndex].albumsArray.push({
+        id: artistArray[artistIndex].albumsArray.length + 1,
+        name: req.body.name,
+      });
       return res.status(200).json({artistArray})
     } else {
-      // res.status(200).json({artistArray})
-      return res.status(404).send(`Sorry the artist's album you are trying to make doesn't work`);
+      return res.status(404).send(`Sorry the artist's album you are trying to make doesn't exist`);
     }
   });
 });
 
-//   artistArray.push({
-//     id: req.body.id,
-//     name: req.body.name,
-//     // albumsArray: [
-//     //   {
-//     //     id: req.body.albumsArray[0].id,
-//     //     name: req.body.albumsArray[0].name,
-//     //   }
-//     // ],
-//     // topSongs: [
-//     //   {
-//     //     id: req.body.topSongs[0].id,
-//     //     name: req.body.topSongs[0].name,
-//     //   }
-//     // ]
-//   });
-
-//   res.status(200).json({
-//     artistArray,
-//   })
-// })
+app.post('/add-new-song-by-id/:artistID', function (req, res) {
+  let artistID = Number(req.params.artistID)
+  let artistIndex;
+  let found = false;
+  
+    artistArray.forEach((item, indexArtist) => {
+      if (item.id === artistID) {
+        artistIndex = indexArtist;
+        found = true
+    };
+    if (found) {
+      artistArray[artistIndex].topSongs.push({
+        id: artistArray[artistIndex].topSongs.length + 1,
+        name: req.body.name,
+      });
+      return res.status(200).json({artistArray})
+    } else {
+      return res.status(404).send(`Sorry the artist's album you are trying to make doesn't exist`);
+    }
+  });
+});
 
 app.delete('/delete-artist/:artistID', function(req, res) {
   let artistIDNumber = Number(req.params.artistID);
   let obj = {};
   let artistIndex;
+  let albumIndex;
   
   console.log('line 148: ', artistArray[0].name)
   artistArray.forEach((artist, indexArtist) => {
     console.log(artist.id)
     if(artist.id === artistIDNumber) {
       artistIndex = indexArtist;
+      let albums = artist.albumsArray;
+
+      albums.forEach((item, index) => {
+        if(item.name === req.body.name){
+          obj = { ...item, ...req.body };
+          albumIndex = index;
+          return delete obj.name
+        }
+      })
 
     } else {
-      console.log("it doesn't work")
+      console.log("Done")
     }
   })
 
